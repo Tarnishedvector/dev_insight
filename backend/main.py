@@ -3,7 +3,7 @@ DevInsight — FastAPI Application Entry Point
 Defines all API endpoints and serves the frontend as static files.
 """
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
@@ -70,6 +70,12 @@ def get_user_id(req: Request) -> Optional[int]:
             pass
     return None
 
+def get_required_user(req: Request) -> int:
+    user_id = get_user_id(req)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    return user_id
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -86,7 +92,7 @@ async def root():
 @app.post("/analyze-error")
 async def analyze_error_endpoint(req: ErrorRequest, request: Request):
     """Analyse an error string and return a human-readable explanation."""
-    user_id = get_user_id(request)
+    user_id = get_required_user(request)
     result = analyze_error(req.error_text)
     insert_error_log(req.error_text, result["explanation"], user_id)
     return {
@@ -98,7 +104,7 @@ async def analyze_error_endpoint(req: ErrorRequest, request: Request):
 @app.post("/test-api")
 async def test_api_endpoint(req: ApiTestRequest, request: Request):
     """Send an HTTP request to the specified URL and return results."""
-    user_id = get_user_id(request)
+    user_id = get_required_user(request)
     result = test_api(req.url, req.method, req.body, req.headers)
     insert_api_log(req.url, req.method.upper(), result.get("status_code", 0), result.get("response_time", 0), user_id)
     return {
@@ -109,22 +115,23 @@ async def test_api_endpoint(req: ApiTestRequest, request: Request):
 
 
 @app.get("/stats")
-async def stats_endpoint():
+async def stats_endpoint(request: Request):
     """Return analytics data aggregated from the database."""
-    return get_stats()
+    user_id = get_required_user(request)
+    return get_stats(user_id)
 
 
 @app.get("/logs/api")
 async def api_logs_endpoint(request: Request):
     """Return all stored API test logs."""
-    user_id = get_user_id(request)
+    user_id = get_required_user(request)
     return {"logs": get_all_api_logs(user_id)}
 
 
 @app.get("/logs/errors")
 async def error_logs_endpoint(request: Request):
     """Return all stored error analysis logs."""
-    user_id = get_user_id(request)
+    user_id = get_required_user(request)
     return {"logs": get_all_error_logs(user_id)}
 
 @app.post("/signup")

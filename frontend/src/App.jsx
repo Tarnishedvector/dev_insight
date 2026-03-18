@@ -533,11 +533,11 @@ function AuthModal({ onClose, onLogin }) {
           </button>
         </form>
         <div className="mt-4 text-center text-sm">
-          <button className="text-secondary hover:text-white transition-colors" onClick={() => setIsLogin(!isLogin)}>
+          <button className="text-secondary hover:text-white transition-colors" onClick={() => setIsLogin(!isLogin)} type="button">
             {isLogin ? "Need an account? Sign up" : "Already have an account? Login"}
           </button>
         </div>
-        <button className="absolute top-4 right-4 text-secondary hover:text-white" onClick={onClose}>✕</button>
+        {onClose && <button className="absolute top-4 right-4 text-secondary hover:text-white" onClick={onClose} type="button">✕</button>}
       </div>
     </div>
   );
@@ -605,7 +605,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col items-center w-full">
-      {showAuth && <AuthModal onClose={() => setShowAuth(false)} onLogin={handleLogin} />}
+      {(!user || showAuth) && <AuthModal onClose={user ? () => setShowAuth(false) : null} onLogin={handleLogin} />}
       
       <header id="app-header" className="w-full">
         <div className="header-inner flex flex-col md:flex-row justify-between items-center w-full max-w-5xl mx-auto px-4 py-3">
@@ -625,49 +625,54 @@ export default function App() {
                   Log Out
                 </button>
               </div>
-            ) : (
-              <button onClick={() => setShowAuth(true)} className="primary-btn text-sm px-4 py-1.5 min-h-[32px]">
-                Sign In
-              </button>
-            )}
+            ) : null}
             <ThemeToggle />
           </div>
         </div>
       </header>
 
-      <nav id="main-nav" className="w-full flex justify-center mt-5 mb-0 px-4">
-        <button 
-          className={`nav-btn ${tab === 'error-analyzer' ? 'active' : ''}`}
-          onClick={() => setTab('error-analyzer')}
-        >
-          <Search size={16} className="nav-icon inline-block relative -top-0.5 mr-1.5"/> Error Analyzer
-        </button>
-        <button 
-          className={`nav-btn ${tab === 'api-tester' ? 'active' : ''}`}
-          onClick={() => setTab('api-tester')}
-        >
-          <Server size={16} className="nav-icon inline-block relative -top-0.5 mr-1.5"/> API Tester
-        </button>
-        <button 
-          className={`nav-btn ${tab === 'mock-api' ? 'active' : ''}`}
-          onClick={() => setTab('mock-api')}
-        >
-          <Server size={16} className="nav-icon inline-block relative -top-0.5 mr-1.5"/> Mock API
-        </button>
-        <button 
-          className={`nav-btn ${tab === 'analytics' ? 'active' : ''}`}
-          onClick={() => setTab('analytics')}
-        >
-          <Activity size={16} className="nav-icon inline-block relative -top-0.5 mr-1.5"/> Analytics
-        </button>
-      </nav>
+      {user ? (
+        <>
+          <nav id="main-nav" className="w-full flex justify-center mt-5 mb-0 px-4">
+            <button 
+              className={`nav-btn ${tab === 'error-analyzer' ? 'active' : ''}`}
+              onClick={() => setTab('error-analyzer')}
+            >
+              <Search size={16} className="nav-icon inline-block relative -top-0.5 mr-1.5"/> Error Analyzer
+            </button>
+            <button 
+              className={`nav-btn ${tab === 'api-tester' ? 'active' : ''}`}
+              onClick={() => setTab('api-tester')}
+            >
+              <Server size={16} className="nav-icon inline-block relative -top-0.5 mr-1.5"/> API Tester
+            </button>
+            <button 
+              className={`nav-btn ${tab === 'mock-api' ? 'active' : ''}`}
+              onClick={() => setTab('mock-api')}
+            >
+              <Server size={16} className="nav-icon inline-block relative -top-0.5 mr-1.5"/> Mock API
+            </button>
+            <button 
+              className={`nav-btn ${tab === 'analytics' ? 'active' : ''}`}
+              onClick={() => setTab('analytics')}
+            >
+              <Activity size={16} className="nav-icon inline-block relative -top-0.5 mr-1.5"/> Analytics
+            </button>
+          </nav>
 
-      <main id="app-main" className="flex-1 w-full max-w-5xl px-4 py-8 relative">
-        {tab === 'error-analyzer' && <ErrorAnalyzer />}
-        {tab === 'api-tester' && <ApiTester />}
-        {tab === 'mock-api' && <MockApiBuilder />}
-        {tab === 'analytics' && <Analytics />}
-      </main>
+          <main id="app-main" className="flex-1 w-full max-w-5xl px-4 py-8 relative">
+            {tab === 'error-analyzer' && <ErrorAnalyzer />}
+            {tab === 'api-tester' && <ApiTester />}
+            {tab === 'mock-api' && <MockApiBuilder />}
+            {tab === 'analytics' && <Analytics />}
+          </main>
+        </>
+      ) : (
+        <main className="flex-1 w-full max-w-5xl px-4 flex flex-col items-center justify-center opacity-70">
+           <h2 className="text-2xl font-bold mb-3">Welcome to DevInsight Pro</h2>
+           <p className="text-secondary max-w-md text-center">Please log in to access your personal workspace. All error analysis, api testing history, and analytics metrics are completely segregated and secured to your account.</p>
+        </main>
+      )}
 
       <footer id="app-footer" className="w-full">
         <p>DevInsight &copy; 2026 — Built with FastAPI & React</p>
