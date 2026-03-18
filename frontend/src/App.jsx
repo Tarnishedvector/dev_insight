@@ -478,7 +478,7 @@ function MockApiBuilder({ user }) {
     const start = Date.now();
     try {
       const res = await axios({
-        url: `${API_BASE}/sim/${user?.id || 1}/${ep.route_path}`,
+        url: `${API_BASE}/sim/${user?.id || user?.token || 1}/${ep.route_path}`,
         method: ep.method,
         validateStatus: () => true
       });
@@ -599,10 +599,10 @@ function MockApiBuilder({ user }) {
           Want to magically connect your real frontend application (like a local React app) to these Mock APIs? Simply drop this 1-line script tag into your <strong>index.html</strong> file head. It will seamlessly intercept your frontend network requests and secretly route targeted APIs to your DevInsight Sandbox without changing your codebase!
         </p>
         <div className="bg-[#1e212b] p-3 rounded font-mono text-xs w-full max-w-4xl border border-secondary/20 flex justify-between items-center text-emerald-400">
-          <code>&lt;script src="https://devinsight-backend.onrender.com/injector.js?user={user?.id || 'YOUR_ID'}"&gt;&lt;/script&gt;</code>
+          <code>&lt;script src="https://devinsight-backend.onrender.com/injector.js?user={user?.id || user?.token || 'YOUR_ID'}"&gt;&lt;/script&gt;</code>
           <button 
              className="text-xs ml-4 py-1.5 px-3 bg-[#2d3142] hover:bg-white/10 rounded text-amber-400 border border-amber-400/30 transition-colors whitespace-nowrap"
-             onClick={(e) => { navigator.clipboard.writeText(`<script src="https://devinsight-backend.onrender.com/injector.js?user=${user?.id}"></script>`); e.target.innerText = 'Copied!'; setTimeout(() => e.target.innerText = 'Copy Script', 2000); }}
+             onClick={(e) => { navigator.clipboard.writeText(`<script src="https://devinsight-backend.onrender.com/injector.js?user=${user?.id || user?.token}"></script>`); e.target.innerText = 'Copied!'; setTimeout(() => e.target.innerText = 'Copy Script', 2000); }}
           >
             Copy Script
           </button>
