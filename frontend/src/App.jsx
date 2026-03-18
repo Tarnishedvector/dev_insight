@@ -14,7 +14,7 @@ import { Activity, Search, Server, Zap, ChevronRight } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip);
 
-const API_BASE = 'http://127.0.0.1:8000'; // Hardcoded for this demo
+const API_BASE = 'https://devinsight-backend.onrender.com';
 
 // ---------------------------------------------------------------------------
 // Error Analyzer Component
