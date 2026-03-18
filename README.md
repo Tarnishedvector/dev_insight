@@ -1,16 +1,18 @@
 # DevInsight
+🚀 **Live Deployment:** [https://dev-insight-umber.vercel.app/](https://dev-insight-umber.vercel.app/)
 
-DevInsight is a full-stack developer tool designed to help developers analyze Python errors, test API endpoints, and view performance analytics.
+DevInsight is a comprehensive full-stack platform designed to help developers analyze stack traces dynamically with AI, test API endpoints, instantly launch Artificial Backend Mock environments, and view performance analytics.
 
 ## Features
 
-- **🔍 Error Analyzer**: Paste a typical Python error message and get a human-readable explanation along with suggested fixes.
-- **🚀 API Tester**: Send `GET` and `POST` requests directly from the UI, examine status codes, response times, and preview the JSON/text response.
-- **📊 Analytics Dashboard**: Visualize response times, status code distribution, and view recent activity via an auto-updating SQLite database.
+- **🤖 AI Error Analyzer**: Paste a Python trace or error message and get a human-readable explanation along with instantly generated code fixes. This is powered by **Groq**, enabling lightning-fast LLM inference so developers don't have to wait for insights.
+- **🚀 API Tester**: Send HTTP requests directly from the UI, examine status codes, response times, headers, and preview the JSON response body.
+- **☁️ Artificial Backend Builder / SDK**: Dynamically define your own remote API endpoints with custom payloads and delays. Then, use our **Network Interceptor SDK**—a 1-line `<script>` tag you drop into your frontend code—to automatically hijack your browser's native `fetch()` calls and secretly reroute them to the Sandbox without changing your codebase!
+- **📊 Analytics Dashboard**: Visualize response times, status code distribution, and track system health via an auto-updating remote PostgreSQL database.
 
 ## Architecture
 
-1. **Backend**: Built with **FastAPI** (`backend/main.py`) which exposes 5 core endpoints. It uses a lightweight `SQLite` database (`database.py`) to persist logs, and custom services for rule-based error matching (`services.py`).
+1. **Backend**: Built with **FastAPI** (`backend/main.py`). It uses a remote **Neon PostgreSQL** database (`database.py`) to persist logs, simulate custom endpoints, and safely isolate workspaces by User ID.
 2. **Frontend**: A modern **React** application built via Vite (`frontend/`). It connects to the FastAPI backend, fetches data via Axios, and charts analytics using `Chart.js`.
 
 ---
