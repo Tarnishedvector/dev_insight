@@ -427,7 +427,7 @@ function Analytics() {
 // ---------------------------------------------------------------------------
 // Mock API Builder Component (Artificial Backend & Simulator)
 // ---------------------------------------------------------------------------
-function MockApiBuilder() {
+function MockApiBuilder({ user }) {
   const [endpoints, setEndpoints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ name: '', route_path: '', method: 'GET', status_code: 200, delay_ms: 0, response_body: '{\n  "message": "Hello World"\n}' });
@@ -588,6 +588,24 @@ function MockApiBuilder() {
                 )}
              </div>
           ))}
+        </div>
+      </div>
+      
+      <div className="card w-full mt-6 flex flex-col items-center justify-center p-6 text-center border-accent/20 border">
+        <h3 className="mb-2 text-xl font-bold flex items-center justify-center gap-2">
+          <Zap size={20} className="text-amber-400" /> DevInsight Network Interceptor SDK
+        </h3>
+        <p className="text-secondary tracking-wide leading-relaxed max-w-2xl mb-4 text-sm">
+          Want to magically connect your real frontend application (like a local React app) to these Mock APIs? Simply drop this 1-line script tag into your <strong>index.html</strong> file head. It will seamlessly intercept your frontend network requests and secretly route targeted APIs to your DevInsight Sandbox without changing your codebase!
+        </p>
+        <div className="bg-[#1e212b] p-3 rounded font-mono text-xs w-full max-w-4xl border border-secondary/20 flex justify-between items-center text-emerald-400">
+          <code>&lt;script src="https://devinsight-backend.onrender.com/injector.js?user={user?.id || 'YOUR_ID'}"&gt;&lt;/script&gt;</code>
+          <button 
+             className="text-xs ml-4 py-1.5 px-3 bg-[#2d3142] hover:bg-white/10 rounded text-amber-400 border border-amber-400/30 transition-colors whitespace-nowrap"
+             onClick={(e) => { navigator.clipboard.writeText(`<script src="https://devinsight-backend.onrender.com/injector.js?user=${user?.id}"></script>`); e.target.innerText = 'Copied!'; setTimeout(() => e.target.innerText = 'Copy Script', 2000); }}
+          >
+            Copy Script
+          </button>
         </div>
       </div>
     </div>
@@ -772,7 +790,7 @@ export default function App() {
           <main id="app-main" className="flex-1 w-full max-w-5xl px-4 py-8 relative">
             {tab === 'error-analyzer' && <ErrorAnalyzer />}
             {tab === 'api-tester' && <ApiTester />}
-            {tab === 'mock-api' && <MockApiBuilder />}
+            {tab === 'mock-api' && <MockApiBuilder user={user} />}
             {tab === 'analytics' && <Analytics />}
           </main>
         </>

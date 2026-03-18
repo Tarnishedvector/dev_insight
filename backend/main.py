@@ -3,7 +3,7 @@ DevInsight — FastAPI Application Entry Point
 Defines all API endpoints and serves the frontend as static files.
 """
 
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse, Response
@@ -169,6 +169,65 @@ async def standard_mock_endpoint(status: int = 200, delay: int = 0):
         status_code=status,
         content={"mock": True, "status_code": status, "delay_ms": delay, "message": f"Simulated {status} response."}
     )
+
+
+@app.get("/injector.js")
+async def injector_script(user: int = Query(...)):
+    """Dynamically serves an SDK JavaScript file that overrides frontend fetch/XHR network requests."""
+    endpoints = get_mock_endpoints(user)
+    paths = [ep["route_path"] for ep in endpoints]
+    
+    js_content = f"""
+// ==========================================================
+// ⚡ DevInsight Mock API Interceptor SDK
+// Automatically routes configured network requests to DevInsight
+// ==========================================================
+(function() {{
+    console.log("⚡ DevInsight Mock API Injector Active for User {user}!");
+    
+    const MOCK_PATHS = {paths};
+    const BASE_SIM_URL = "https://devinsight-backend.onrender.com/sim";
+    
+    function shouldIntercept(url) {{
+        for(let path of MOCK_PATHS) {{
+            if(url.includes(path)) return path;
+        }}
+        return null;
+    }}
+
+    // 1. Intercept Fetch API
+    const originalFetch = window.fetch;
+    window.fetch = async function(...args) {{
+        let requestUrl = args[0];
+        if (typeof requestUrl === 'object' && requestUrl.url) {{
+            requestUrl = requestUrl.url;
+        }}
+        
+        let matchPath = shouldIntercept(requestUrl);
+        if(matchPath && !requestUrl.includes("devinsight-backend")) {{
+            console.log(`[DevInsight] 🔁 Intercepting mock fetch for: ${{requestUrl}}`);
+            if(typeof args[0] === 'string') {{
+                args[0] = `${{BASE_SIM_URL}}/${{matchPath}}`;
+            }} else {{
+                args[0] = new Request(`${{BASE_SIM_URL}}/${{matchPath}}`, args[0]);
+            }}
+        }}
+        return originalFetch.apply(this, args);
+    }};
+
+    // 2. Intercept XMLHttpRequests (Axios)
+    const originalOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url, ...rest) {{
+        let matchPath = shouldIntercept(url);
+        if(matchPath && !url.includes("devinsight-backend")) {{
+            console.log(`[DevInsight] 🔁 Intercepting mock XHR for: ${{url}}`);
+            url = `${{BASE_SIM_URL}}/${{matchPath}}`;
+        }}
+        return originalOpen.call(this, method, url, ...rest);
+    }};
+}})();
+"""
+    return Response(content=js_content, media_type="application/javascript")
 
 
 @app.get("/mock-api/endpoints")
