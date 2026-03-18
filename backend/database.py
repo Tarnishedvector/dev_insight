@@ -64,6 +64,20 @@ def init_db() -> None:
     except Exception:
         pass
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS mock_endpoints (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            route_path TEXT NOT NULL,
+            method TEXT NOT NULL,
+            status_code INTEGER DEFAULT 200,
+            response_body TEXT,
+            delay_ms INTEGER DEFAULT 0,
+            UNIQUE (route_path, method)
+        )
+    """)
+
     cursor.close()
     conn.close()
 
@@ -152,6 +166,60 @@ def get_all_error_logs(user_id: int = None) -> list[dict]:
     cursor.close()
     conn.close()
     return [dict(r) for r in rows]
+
+# ---------------------------------------------------------------------------
+# Mock Endpoints (Simulations)
+# ---------------------------------------------------------------------------
+
+def create_mock_endpoint(user_id: int, name: str, route_path: str, method: str, status_code: int, response_body: str, delay_ms: int) -> dict:
+    conn = get_connection()
+    cur = conn.cursor()
+    # Normalize route_path, strip leading slash
+    if route_path.startswith("/"): route_path = route_path[1:]
+    
+    try:
+        cur.execute(
+            """INSERT INTO mock_endpoints 
+            (user_id, name, route_path, method, status_code, response_body, delay_ms) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id""",
+            (user_id, name, route_path, method.upper(), status_code, response_body, delay_ms)
+        )
+        row_id = cur.fetchone()['id']
+        return {"id": row_id, "success": True}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+    finally:
+        cur.close()
+        conn.close()
+
+def get_mock_endpoints(user_id: int) -> list[dict]:
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM mock_endpoints WHERE user_id = %s ORDER BY id DESC", (user_id,))
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def delete_mock_endpoint(user_id: int, endpoint_id: int) -> bool:
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM mock_endpoints WHERE id = %s AND user_id = %s RETURNING id", (endpoint_id, user_id))
+    deleted = cur.fetchone() is not None
+    cur.close()
+    conn.close()
+    return deleted
+
+def find_mock_endpoint(route_path: str, method: str) -> dict:
+    conn = get_connection()
+    cur = conn.cursor()
+    if route_path.startswith("/"): route_path = route_path[1:]
+    cur.execute("SELECT * FROM mock_endpoints WHERE route_path = %s AND method = %s", (route_path, method.upper()))
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    return dict(row) if row else None
+
 
 # Auto-initialise tables on first import
 try:

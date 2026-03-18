@@ -425,60 +425,169 @@ function Analytics() {
 }
 
 // ---------------------------------------------------------------------------
-// Mock API Builder Component
+// Mock API Builder Component (Artificial Backend & Simulator)
 // ---------------------------------------------------------------------------
 function MockApiBuilder() {
-  const [status, setStatus] = useState(200);
-  const [delay, setDelay] = useState(0);
+  const [endpoints, setEndpoints] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ name: '', route_path: '', method: 'GET', status_code: 200, delay_ms: 0, response_body: '{\n  "message": "Hello World"\n}' });
+  const [errorMsg, setErrorMsg] = useState('');
+  
+  // For Simulation Console
+  const [simResult, setSimResult] = useState(null);
+  const [simLoading, setSimLoading] = useState(false);
+  const [activeSimId, setActiveSimId] = useState(null);
 
-  const mockUrl = `${API_BASE}/mock?status=${status}&delay=${delay}`;
+  useEffect(() => {
+    fetchEndpoints();
+  }, []);
 
-  const copyUrl = () => {
-    navigator.clipboard.writeText(mockUrl);
+  const fetchEndpoints = () => {
+    axios.get(`${API_BASE}/mock-api/endpoints`)
+      .then(res => setEndpoints(res.data.endpoints || []))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  };
+
+  const createEndpoint = async (e) => {
+    e.preventDefault();
+    if (!form.name || !form.route_path) return;
+    setErrorMsg('');
+    try {
+      await axios.post(`${API_BASE}/mock-api/endpoints`, form);
+      fetchEndpoints();
+      setForm({ ...form, name: '', route_path: '' });
+    } catch (err) {
+      setErrorMsg(err.response?.data?.detail || err.message);
+    }
+  };
+
+  const deleteEndpoint = async (id) => {
+    try {
+      await axios.delete(`${API_BASE}/mock-api/endpoints/${id}`);
+      fetchEndpoints();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const runSimulation = async (ep) => {
+    setSimLoading(true);
+    setActiveSimId(ep.id);
+    setSimResult(null);
+    const start = Date.now();
+    try {
+      const res = await axios({
+        url: `${API_BASE}/sim/${ep.route_path}`,
+        method: ep.method,
+        validateStatus: () => true
+      });
+      const time = ((Date.now() - start) / 1000).toFixed(2);
+      setSimResult({ status: res.status, data: res.data, time });
+    } catch (err) {
+      setSimResult({ status: 500, error: err.message, time: 0 });
+    } finally {
+      setSimLoading(false);
+    }
   };
 
   return (
-    <div className="card tab-panel slide-up">
-      <h2>Mock API Builder</h2>
-      <p className="card-desc">Generate a mock endpoint that returns specific status codes and simulates network delay.</p>
-      
-      <div className="flex flex-col md:flex-row gap-6 mt-6">
-        <div className="flex-1 flex flex-col gap-4">
-          <div className="input-group">
-            <label>Response Status Code</label>
-            <select value={status} onChange={e => setStatus(Number(e.target.value))}>
-              <option value={200}>200 OK</option>
-              <option value={201}>201 Created</option>
-              <option value={400}>400 Bad Request</option>
-              <option value={401}>401 Unauthorized</option>
-              <option value={403}>403 Forbidden</option>
-              <option value={404}>404 Not Found</option>
-              <option value={500}>500 Internal Server Error</option>
-              <option value={502}>502 Bad Gateway</option>
-              <option value={503}>503 Service Unavailable</option>
-            </select>
-          </div>
-          <div className="input-group">
-            <label>Delay (milliseconds)</label>
-            <input 
-              type="number" 
-              min="0" 
-              max="10000" 
-              step="100" 
-              value={delay} 
-              onChange={e => setDelay(Number(e.target.value))} 
-            />
-          </div>
-        </div>
+    <div className="flex flex-col lg:flex-row gap-6 slide-up w-full">
+      <div className="card flex-1">
+        <h2>Artificial Backend Builder</h2>
+        <p className="card-desc">Define custom database-backed mock API endpoints with custom JSON responses to automatically simulate backends.</p>
         
-        <div className="flex-1 card bg-darker p-5 h-fit border border-accent/20">
-          <h3 className="mb-4">Your Mock Endpoint</h3>
-          <div className="bg-[#1e212b] p-3 rounded text-emerald-400 font-mono text-sm break-all mb-4">
-            {mockUrl}
+        {errorMsg && <div className="text-rose-400 text-sm mb-3 bg-rose-500/10 p-2 rounded">{errorMsg}</div>}
+        
+        <form onSubmit={createEndpoint} className="flex flex-col gap-4 mt-2">
+          <div className="flex gap-4">
+             <div className="input-group flex-1">
+                <label>Endpoint Name / Tag</label>
+                <input required type="text" placeholder="e.g. Get User Profile" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+             </div>
+             <div className="input-group w-32">
+                <label>Method</label>
+                <select value={form.method} onChange={e => setForm({...form, method: e.target.value})}>
+                  <option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option>
+                </select>
+             </div>
           </div>
-          <div className="flex gap-3">
-            <button className="primary-btn flex-1" onClick={copyUrl}>Copy URL</button>
+          
+          <div className="flex gap-4">
+             <div className="input-group flex-[2]">
+                <label>Route Path</label>
+                <div className="flex items-center">
+                  <span className="text-secondary bg-darker p-2 rounded-l border border-r-0 border-accent/20">/sim/</span>
+                  <input className="rounded-l-none" required type="text" placeholder="users/123" value={form.route_path} onChange={e => setForm({...form, route_path: e.target.value})} />
+                </div>
+             </div>
+             <div className="input-group flex-1">
+                <label>Status Code</label>
+                <input type="number" required value={form.status_code} onChange={e => setForm({...form, status_code: Number(e.target.value)})} />
+             </div>
+             <div className="input-group flex-1">
+                <label>Delay (ms)</label>
+                <input type="number" required max="10000" step="100" value={form.delay_ms} onChange={e => setForm({...form, delay_ms: Number(e.target.value)})} />
+             </div>
           </div>
+          
+          <div className="input-group">
+            <label>Custom JSON Response Body</label>
+            <textarea required rows="5" className="font-mono text-sm" value={form.response_body} onChange={e => setForm({...form, response_body: e.target.value})} />
+          </div>
+          
+          <button type="submit" className="primary-btn w-full mt-2">Create Endpoint</button>
+        </form>
+      </div>
+
+      <div className="card flex-1 flex flex-col h-fit max-h-[800px]">
+        <h3>Client Simulator Console</h3>
+        <p className="card-desc">Simulate a frontend application fetching your custom endpoints in real time.</p>
+        
+        <div className="flex flex-col gap-3 overflow-y-auto mt-4 custom-scrollbar pr-2">
+          {loading ? (
+             <p className="text-secondary text-sm">Loading endpoints...</p>
+          ) : endpoints.length === 0 ? (
+             <p className="text-secondary text-sm">No custom endpoints created yet.</p>
+          ) : endpoints.map(ep => (
+             <div key={ep.id} className="bg-darker p-4 rounded border border-transparent hover:border-accent transition-colors relative group">
+                <div className="flex justify-between items-start mb-2">
+                   <div>
+                      <strong className="block text-white">{ep.name}</strong>
+                      <div className="flex gap-2 items-center text-xs mt-1">
+                        <span className="text-blue-400 font-bold">{ep.method}</span>
+                        <span className="text-secondary">/sim/{ep.route_path}</span>
+                      </div>
+                   </div>
+                   <button className="text-xs text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity" title="Delete Mock Endpoint" onClick={() => deleteEndpoint(ep.id)}>Delete</button>
+                </div>
+                
+                <div className="flex gap-2 items-center text-xs mb-3">
+                   <span className="meta-chip border-emerald-500/30 text-emerald-400">Status: {ep.status_code}</span>
+                   <span className="meta-chip border-amber-500/30 text-amber-400">{ep.delay_ms}ms Delay</span>
+                </div>
+                
+                <button 
+                  className="w-full text-xs py-1.5 border border-indigo-500/50 hover:bg-indigo-500/20 hover:border-indigo-400 rounded transition-colors text-indigo-300 font-bold"
+                  onClick={() => runSimulation(ep)}
+                  disabled={simLoading && activeSimId === ep.id}
+                >
+                  {simLoading && activeSimId === ep.id ? 'Simulating Network Request...' : 'Simulate Client Fetch Request'}
+                </button>
+                
+                {activeSimId === ep.id && simResult && (
+                  <div className="mt-3 p-3 bg-black rounded border border-secondary/20 fade-in">
+                     <div className="flex gap-3 text-xs mb-2">
+                        <span className={simResult.status >= 400 ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'}>Received: {simResult.status}</span>
+                        <span className="text-secondary">Network Wait Time: {simResult.time}s</span>
+                     </div>
+                     <pre className="text-emerald-300 font-mono text-[10px] sm:text-xs overflow-x-auto max-h-40">
+                        {simResult.error ? simResult.error : JSON.stringify(simResult.data, null, 2)}
+                     </pre>
+                  </div>
+                )}
+             </div>
+          ))}
         </div>
       </div>
     </div>
