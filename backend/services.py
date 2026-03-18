@@ -23,6 +23,7 @@ ERROR_RULES: list[dict] = [
             "Check if the key exists first with `if key in my_dict:`.",
             "Use `collections.defaultdict` for automatic default values.",
         ],
+        "example": "data = {'name': 'Alice'}\n# Instead of data['age']\nage = data.get('age', 25)",
     },
     {
         "pattern": r"TypeError\s*:",
@@ -36,6 +37,7 @@ ERROR_RULES: list[dict] = [
             "Use explicit type conversion: `int()`, `str()`, `float()`.",
             "Check function signatures to ensure you're passing the correct types.",
         ],
+        "example": "age = 25\n# Instead of 'Age: ' + age\nmessage = 'Age: ' + str(age)",
     },
     {
         "pattern": r"IndexError\s*:",
@@ -48,6 +50,7 @@ ERROR_RULES: list[dict] = [
             "Use try/except to handle the case gracefully.",
             "Use negative indexing (`my_list[-1]`) to access the last element safely.",
         ],
+        "example": "items = [1, 2, 3]\nif len(items) > 3:\n    print(items[3])\nelse:\n    print('Index out of range')",
     },
     {
         "pattern": r"ValueError\s*:",
@@ -61,6 +64,7 @@ ERROR_RULES: list[dict] = [
             "Use try/except around conversion calls.",
             "Provide clear error messages to trace the invalid value.",
         ],
+        "example": "user_input = 'abc'\ntry:\n    number = int(user_input)\nexcept ValueError:\n    print('Please enter a valid number')",
     },
     {
         "pattern": r"ZeroDivisionError\s*:",
@@ -73,6 +77,7 @@ ERROR_RULES: list[dict] = [
             "Use try/except to catch the error and return a default value.",
             "Validate user input to prevent zero as a divisor.",
         ],
+        "example": "divisor = 0\nif divisor != 0:\n    result = 10 / divisor\nelse:\n    result = None",
     },
     {
         "pattern": r"AttributeError\s*:",
@@ -86,6 +91,7 @@ ERROR_RULES: list[dict] = [
             "Verify the object type — it may be None unexpectedly.",
             "Check for typos in the attribute or method name.",
         ],
+        "example": "if hasattr(my_object, 'my_method'):\n    my_object.my_method()\nelse:\n    print('Method not found')",
     },
     {
         "pattern": r"ImportError\s*:|ModuleNotFoundError\s*:",
@@ -98,6 +104,7 @@ ERROR_RULES: list[dict] = [
             "Check for typos in the module name.",
             "Verify you're using the correct Python environment / virtual env.",
         ],
+        "example": "# Make sure you installed the package, e.g., pip install requests\nimport requests",
     },
     {
         "pattern": r"FileNotFoundError\s*:",
@@ -110,6 +117,7 @@ ERROR_RULES: list[dict] = [
             "Use `os.path.exists(path)` before opening the file.",
             "Use absolute paths instead of relative paths when in doubt.",
         ],
+        "example": "import os\nfilepath = 'data.txt'\nif os.path.exists(filepath):\n    with open(filepath, 'r') as f:\n        data = f.read()",
     },
     {
         "pattern": r"NameError\s*:",
@@ -122,6 +130,7 @@ ERROR_RULES: list[dict] = [
             "Check for typos or case-sensitivity issues in the name.",
             "Ensure the import statement for external names is present.",
         ],
+        "example": "counter = 0 # Define it first\ncounter += 1\nprint(counter)",
     },
     {
         "pattern": r"SyntaxError\s*:",
@@ -134,6 +143,7 @@ ERROR_RULES: list[dict] = [
             "Make sure strings are properly quoted and closed.",
             "Look at the line number in the traceback to find the exact location.",
         ],
+        "example": "# Missing colon at the end of the if statement\nif is_valid:\n    print('Valid!')",
     },
     {
         "pattern": r"IndentationError\s*:",
@@ -146,6 +156,7 @@ ERROR_RULES: list[dict] = [
             "Don't mix tabs and spaces — configure your editor to use spaces.",
             "Re-indent the block of code that the error points to.",
         ],
+        "example": "def my_func():\n    # Use 4 spaces for indentation\n    print('Hello')",
     },
     {
         "pattern": r"StopIteration\s*:",
@@ -158,6 +169,7 @@ ERROR_RULES: list[dict] = [
             "Pass a default to `next(iterator, default)` to avoid the error.",
             "Check if the iterator still has items before calling next.",
         ],
+        "example": "my_iter = iter([1, 2])\n# Use default to avoid StopIteration\nval = next(my_iter, None)",
     },
     {
         "pattern": r"RuntimeError\s*:",
@@ -171,6 +183,7 @@ ERROR_RULES: list[dict] = [
             "Check for infinite recursion or mutating a collection while iterating.",
             "Add defensive checks around the failing code path.",
         ],
+        "example": "items = [1, 2, 3]\n# Do not remove items while iterating over a list\nfor item in list(items):\n    items.remove(item)",
     },
     {
         "pattern": r"OverflowError\s*:",
@@ -184,6 +197,7 @@ ERROR_RULES: list[dict] = [
             "Add bounds checking before performing large calculations.",
             "Consider using the `decimal` module for precise arithmetic.",
         ],
+        "example": "import math\ntry:\n    res = math.exp(1000)\nexcept OverflowError:\n    res = float('inf')",
     },
     {
         "pattern": r"PermissionError\s*:",
@@ -197,6 +211,90 @@ ERROR_RULES: list[dict] = [
             "Check file/directory permissions with your OS tools.",
             "Make sure the file is not locked by another process.",
         ],
+        "example": "import os\nif os.access('/secret.txt', os.R_OK):\n    with open('/secret.txt') as f:\n        print(f.read())\n",
+    },
+    {
+        "pattern": r"Cannot read properties of (undefined|null)",
+        "title": "TypeError: Cannot read properties of undefined/null (JS/React)",
+        "explanation": "You are trying to access a property on a variable that is currently undefined or null.",
+        "fixes": [
+            "Use optional chaining (`obj?.property`).",
+            "Initialize the state with a default value (e.g., an empty object `{}`).",
+            "Add a conditional check before accessing the property.",
+        ],
+        "example": "// Instead of user.profile.name\nconst name = user?.profile?.name || 'Guest';",
+    },
+    {
+        "pattern": r": Expected corresponding JSX closing tag for <(\w+)>",
+        "title": "SyntaxError: Expected corresponding JSX closing tag",
+        "explanation": "A JSX tag was opened but never closed, or closed in the wrong order.",
+        "fixes": [
+            "Ensure every opening tag like `<div>` has a closing tag `</div>`.",
+            "If the element has no children, use a self-closing tag like `<img />`.",
+        ],
+        "example": "// Fix the missing slash or missing tag\nreturn (\n  <div>\n    <img src='...' alt='...' />\n  </div>\n);",
+    },
+    {
+        "pattern": r"Each child in a list should have a unique \"key\" prop",
+        "title": "React Warning: Missing Key Prop",
+        "explanation": "React requires a unique 'key' prop for elements rendered inside an array or iterator to track changes efficiently.",
+        "fixes": [
+            "Add a `key` prop to the top-level element in your `.map()` callback.",
+            "Use a unique ID from your data (e.g., `item.id`).",
+            "Avoid using the array index as a key if the list can change.",
+        ],
+        "example": "items.map((item) => (\n  <div key={item.id}>{item.name}</div>\n))",
+    },
+    {
+        "pattern": r"Too many re-renders\. React limits the number of renders to prevent an infinite loop",
+        "title": "React Error: Too many re-renders",
+        "explanation": "You called a state-updating function (like `setState`) directly inside the component body or directly in an event handler without an arrow function.",
+        "fixes": [
+            "Wrap the state update in an arrow function: `onClick={() => setCount(count + 1)}`.",
+            "Move the state update inside a `useEffect` if it should happen on mount/update.",
+        ],
+        "example": "// Inside render:\n<button onClick={() => setOpen(true)}>Open</button>",
+    },
+    {
+        "pattern": r"Unexpected token .* in JSON at position",
+        "title": "SyntaxError: Unexpected token in JSON",
+        "explanation": "You tried to parse a string using `JSON.parse()`, but the string is not valid JSON. This often happens when an API returns HTML (like a 404 page) instead of JSON.",
+        "fixes": [
+            "Check the API response status before calling `.json()`.",
+            "Inspect the Network tab to see what the server is actually returning.",
+        ],
+        "example": "const response = await fetch('/api');\nif (!response.ok) throw new Error('Not OK');\nconst data = await response.json();",
+    },
+    {
+        "pattern": r"ECONNREFUSED",
+        "title": "Network Error: ECONNREFUSED",
+        "explanation": "Your application tried to connect to a service, but the connection was refused. Usually, this means the target server or database is not running.",
+        "fixes": [
+            "Ensure your backend database or API server is running.",
+            "Check that you are using the correct port and localhost address.",
+            "Check for firewall rules blocking the port.",
+        ],
+        "example": "// Make sure the server processes are running locally:\n// e.g. npm run dev / uvicorn main:app",
+    },
+    {
+        "pattern": r"CORS policy: No 'Access-Control-Allow-Origin' header is present",
+        "title": "CORS Error (Cross-Origin Resource Sharing)",
+        "explanation": "The browser blocked an API request because the backend server does not have CORS explicitly configured to allow your frontend's domain.",
+        "fixes": [
+            "If you control the backend, configure CORS middleware to allow the frontend origin.",
+            "For local development, ensure your proxy is set up correctly.",
+        ],
+        "example": "# FastAPI Backend Fix:\nfrom fastapi.middleware.cors import CORSMiddleware\napp.add_middleware(CORSMiddleware, allow_origins=['*'])",
+    },
+    {
+        "pattern": r"Maximum call stack size exceeded",
+        "title": "RangeError: Maximum call stack size exceeded",
+        "explanation": "You have a recursive function with no base case to stop it, causing an infinite loop that crashes the browser/Node environment.",
+        "fixes": [
+            "Check for recursive functions calling themselves repeatedly.",
+            "Ensure `useEffect` dependencies do not cause a continuous update loop.",
+        ],
+        "example": "useEffect(() => {\n  // Do not update the dependency 'data' unconditionally if it triggers another fetch\n}, [data]);",
     },
 ]
 
@@ -204,7 +302,7 @@ ERROR_RULES: list[dict] = [
 def analyze_error(error_text: str) -> dict:
     """
     Match *error_text* against known Python error patterns.
-    Returns a dict with title, explanation, and suggested fixes.
+    Returns a dict with title, explanation, suggested fixes, and an example snippet.
     """
     for rule in ERROR_RULES:
         if re.search(rule["pattern"], error_text, re.IGNORECASE | re.MULTILINE):
@@ -213,6 +311,7 @@ def analyze_error(error_text: str) -> dict:
                 "title": rule["title"],
                 "explanation": rule["explanation"],
                 "fixes": rule["fixes"],
+                "example": rule.get("example", ""),
             }
 
     # Fallback for unrecognised errors
@@ -228,6 +327,7 @@ def analyze_error(error_text: str) -> dict:
             "Check the official Python documentation for details.",
             "Add try/except blocks to isolate the failing code.",
         ],
+        "example": "try:\n    # Failing code here\n    pass\nexcept Exception as e:\n    print(f'Caught exception: {e}')",
     }
 
 

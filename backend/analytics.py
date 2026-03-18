@@ -13,13 +13,19 @@ def get_stats() -> dict:
     cur.execute("SELECT COUNT(*) as cnt FROM api_logs")
     total_api = cur.fetchone()['cnt']
 
-    cur.execute("SELECT AVG(response_time) as avg_rt FROM api_logs")
-    avg_rt = cur.fetchone()['avg_rt']
-    avg_rt = round(float(avg_rt), 4) if avg_rt else 0
+    cur.execute("SELECT AVG(response_time) as avg_rt, MIN(response_time) as min_rt, MAX(response_time) as max_rt FROM api_logs")
+    rt_row = cur.fetchone()
+    avg_rt = round(float(rt_row['avg_rt']), 4) if rt_row and rt_row['avg_rt'] is not None else 0
+    fastest_rt = round(float(rt_row['min_rt']), 4) if rt_row and rt_row['min_rt'] is not None else 0
+    slowest_rt = round(float(rt_row['max_rt']), 4) if rt_row and rt_row['max_rt'] is not None else 0
 
     # --- Error metrics ---
     cur.execute("SELECT COUNT(*) as cnt FROM error_logs")
     total_errors = cur.fetchone()['cnt']
+    
+    error_rate = 0.0
+    if total_api > 0:
+        error_rate = round((total_errors / total_api) * 100, 2)
 
     # Error-frequency breakdown
     cur.execute("""
@@ -58,7 +64,10 @@ def get_stats() -> dict:
     return {
         "total_api_requests": total_api,
         "average_response_time": avg_rt,
+        "fastest_request": fastest_rt,
+        "slowest_request": slowest_rt,
         "total_error_queries": total_errors,
+        "error_rate": error_rate,
         "error_frequency": error_freq,
         "status_code_distribution": status_dist,
         "recent_api_logs": recent_api,
