@@ -210,11 +210,11 @@ def delete_mock_endpoint(user_id: int, endpoint_id: int) -> bool:
     conn.close()
     return deleted
 
-def find_mock_endpoint(route_path: str, method: str) -> dict:
+def find_mock_endpoint(user_id: int, route_path: str, method: str) -> dict:
     conn = get_connection()
     cur = conn.cursor()
     if route_path.startswith("/"): route_path = route_path[1:]
-    cur.execute("SELECT * FROM mock_endpoints WHERE route_path = %s AND method = %s", (route_path, method.upper()))
+    cur.execute("SELECT * FROM mock_endpoints WHERE user_id = %s AND route_path = %s AND method = %s", (user_id, route_path, method.upper()))
     row = cur.fetchone()
     cur.close()
     conn.close()

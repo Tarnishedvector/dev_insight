@@ -186,7 +186,8 @@ async def injector_script(user: int = Query(...)):
     console.log("⚡ DevInsight Mock API Injector Active for User {user}!");
     
     const MOCK_PATHS = {paths};
-    const BASE_SIM_URL = "https://devinsight-backend.onrender.com/sim";
+    const BASE_SIM_URL = "https://devinsight-backend.onrender.com/sim/{user}";
+    
     
     function shouldIntercept(url) {{
         for(let path of MOCK_PATHS) {{
@@ -259,17 +260,17 @@ async def delete_custom_mock(endpoint_id: int, request: Request):
     raise HTTPException(status_code=404, detail="Endpoint not found")
 
 
-@app.api_route("/sim/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
-async def simulation_engine(path: str, request: Request):
+@app.api_route("/sim/{user_id}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+async def simulation_engine(user_id: int, path: str, request: Request):
     """
     The advanced interceptor for custom artificial APIs.
-    Looks up `/sim/my-path` in DB and returns the exact custom behavior.
+    Looks up `/sim/user_id/my-path` in DB and returns the exact custom behavior.
     """
     method = request.method.upper()
-    endpoint = find_mock_endpoint(path, method)
+    endpoint = find_mock_endpoint(user_id, path, method)
     
     if not endpoint:
-        raise HTTPException(status_code=404, detail=f"Simulated API Route '/sim/{path}' with method {method} not found in database.")
+        raise HTTPException(status_code=404, detail=f"Simulated API Route '/sim/{user_id}/{path}' with method {method} not found in database.")
     
     if endpoint["delay_ms"] > 0:
         await asyncio.sleep(endpoint["delay_ms"] / 1000.0)

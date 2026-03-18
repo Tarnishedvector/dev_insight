@@ -478,7 +478,7 @@ function MockApiBuilder({ user }) {
     const start = Date.now();
     try {
       const res = await axios({
-        url: `${API_BASE}/sim/${ep.route_path}`,
+        url: `${API_BASE}/sim/${user?.id || 1}/${ep.route_path}`,
         method: ep.method,
         validateStatus: () => true
       });
