@@ -8,14 +8,14 @@
    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
    
    :root {
-       --bg-primary: #0f1117;
-       --bg-secondary: #1a1d27;
-       --bg-card: #21242f;
-       --bg-input: #181b24;
-       --border: #2e3240;
-       --text-primary: #e4e6ed;
-       --text-secondary: #9ca0af;
-       --text-muted: #6b7084;
+       --bg-primary: #000000;
+       --bg-secondary: #0a0a0a;
+       --bg-card: #111111;
+       --bg-input: #1a1a1a;
+       --border: #222222;
+       --text-primary: #f3f4f6;
+       --text-secondary: #9ca3af;
+       --text-muted: #6b7280;
        --accent: #6c63ff;
        --accent-hover: #7f78ff;
        --accent-glow: rgba(108, 99, 255, 0.25);

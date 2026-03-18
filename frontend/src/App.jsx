@@ -543,6 +543,35 @@ function AuthModal({ onClose, onLogin }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Theme Toggle Component
+// ---------------------------------------------------------------------------
+function ThemeToggle() {
+  const [isDark, setIsDark] = useState(
+    localStorage.getItem('theme') === 'light' ? false : true
+  );
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.remove('light-theme');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.add('light-theme');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDark]);
+
+  return (
+    <button 
+      onClick={() => setIsDark(!isDark)}
+      className="p-2 rounded-full hover:bg-secondary/20 transition-colors ml-2"
+      title="Toggle Theme"
+    >
+      {isDark ? <Sun size={18} className="text-amber-300" /> : <Moon size={18} className="text-indigo-500" />}
+    </button>
+  );
+}
+
 export default function App() {
   const [tab, setTab] = useState('error-analyzer');
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('devinsight_user') || 'null'));
